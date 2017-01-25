@@ -33,6 +33,7 @@ def show_category(request, category_name_slug):
     return render(request, 'rango/category.html', context_dict)
 
 
+@login_required
 def add_category(request):
     form = CategoryForm()
 
@@ -46,6 +47,7 @@ def add_category(request):
     return render(request, 'rango/add_category.html', {'form': form})
 
 
+@login_required
 def add_page(request, category_name_slug):
     try:
         category = Category.objects.get(slug=category_name_slug)
@@ -53,14 +55,10 @@ def add_page(request, category_name_slug):
         category = None
 
     form = PageForm()
-    print('a')
     if request.method == 'POST':
-        print('b')
         form = PageForm(request.POST)
         if form.is_valid():
-            print('c')
             if category:
-                print('d')
                 page = form.save(commit=False)
                 page.category = category
                 page.views = 0
@@ -107,6 +105,7 @@ def register(request):
 
 
 def user_login(request):
+    context_dict = {}
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -118,17 +117,18 @@ def user_login(request):
                 login(request, user)
                 return HttpResponseRedirect(reverse('rango:index'))
             else:
-                HttpResponse("Your Rango account is disabled.")
+                # HttpResponse("Your Rango account is disabled.")
+                context_dict['error_message'] = "Your Rango account is disabled."
         else:
             print("Invalid login details: {0}, {1}".format(username, password))
-            return HttpResponse("Invalid login details supplied.")
-    else:
-        return render(request, 'rango/login.html')
+            # return HttpResponse("Invalid login details supplied.")
+            context_dict['error_message'] = "Invalid login details supplied."
+    return render(request, 'rango/login.html', context_dict)
 
 
 @login_required
 def restricted(request):
-    return HttpResponse("Since you're logged in, you can see this text!")
+    return render(request, 'rango/restricted.html')
 
 
 @login_required
