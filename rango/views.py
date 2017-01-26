@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from models import Category, Page
@@ -41,7 +41,7 @@ def add_category(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save(commit=True)
-            return HttpResponseRedirect(reverse('rango:index'))
+            return HttpResponseRedirect(reverse('index'))
         else:
             print(form.errors)
     return render(request, 'rango/add_category.html', {'form': form})
@@ -64,7 +64,7 @@ def add_page(request, category_name_slug):
                 page.views = 0
                 p = page.save()
                 print(p)
-                return HttpResponseRedirect(reverse('rango:show_category',
+                return HttpResponseRedirect(reverse('show_category',
                                                     kwargs={'category_name_slug': category_name_slug}))
         else:
             print(form.errors)
@@ -115,7 +115,7 @@ def user_login(request):
         if user:
             if user.is_active:
                 login(request, user)
-                return HttpResponseRedirect(reverse('rango:index'))
+                return HttpResponseRedirect(reverse('index'))
             else:
                 # HttpResponse("Your Rango account is disabled.")
                 context_dict['error_message'] = "Your Rango account is disabled."
@@ -134,4 +134,4 @@ def restricted(request):
 @login_required
 def user_logout(request):
     logout(request)
-    return HttpResponseRedirect(reverse('rango:index'))
+    return HttpResponseRedirect(reverse('index'))
