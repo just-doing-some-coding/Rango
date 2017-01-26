@@ -7,9 +7,11 @@
 
 {% block body_block %}
     Rango says here is the about page.
-    <br>
+    <br />
     This tutorial has been put together by Daniel.
-    <br>
+    <br />
+    You have visited this site {{ visits }}-time{{ visits|pluralize }}.
+    <br />
     <img src="{% static 'images/rango_about.jpg' %}"
          alt="Picture of Rango" />
     <img src="{{ MEDIA_URL }}cat.jpg"
