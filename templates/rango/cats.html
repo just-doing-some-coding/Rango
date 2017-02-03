@@ -1,17 +1,15 @@
-<ul>
+<ul class="nav nav-pills flex-column">
     {% if cats %}
         {% for c in cats %}
+            <li class="nav-item">
             {% if c == act_cat %}
-                <li>
                     <strong>
                         <a href="{% url 'show_category' c.slug %}">{{ c.name }}</a>
                     </strong>
-                </li>
             {% else %}
-                <li>
                     <a href="{% url 'show_category' c.slug %}">{{ c.name }}</a>
-                </li>
             {% endif %}
+            </li>
         {% endfor %}
     {% else %}
         <li><strong>There are no categories present.</strong></li>

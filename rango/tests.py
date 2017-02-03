@@ -1,8 +1,14 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.staticfiles import finders
+from rango.models import Category
+from django.contrib.auth.models import User
 
 # Thanks to Enzo Roiz https://github.com/enzoroiz who made these tests during an internship with us
+
+
+def create_category(name, views=0, likes=0):
+    return Category.objects.create(name=name, views=views, likes=likes)
 
 
 class GeneralTests(TestCase):
@@ -39,6 +45,26 @@ class IndexPageTests(TestCase):
         self.assertIn(b'<title>', response.content)
         self.assertIn(b'</title>', response.content)
 
+    # my
+    def test_side_categories_menu_with_no_questions(self):
+        response = self.client.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "There are no categories present.")
+
+    # my
+    def test_side_categories_menu(self):
+        create_category('Cat1', 100, 200)
+        create_category('Cat2', 250, 300)
+        create_category('Cat3', 300, 100)
+        response = self.client.get(reverse('index'))
+        self.assertQuerysetEqual(response.context['categories'],
+                                 ['<Category: Cat2>', '<Category: Cat1>', '<Category: Cat3>'])
+
+    # my
+    def test_link_to_about_page(self):
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, '<a href="%s">About</a>' % reverse('about'), html=True)
+
 
 class AboutPageTests(TestCase):
         
@@ -47,8 +73,7 @@ class AboutPageTests(TestCase):
         # Exercise from Chapter 4
         response = self.client.get(reverse('about'))
         self.assertIn(b'This tutorial has been put together by', response.content)
-        
-        
+
     def test_about_contain_image(self):
         # Check if is there an image on the about page
         # Chapter 4
@@ -61,7 +86,11 @@ class AboutPageTests(TestCase):
         response = self.client.get(reverse('about'))
 
         self.assertTemplateUsed(response, 'rango/about.html')
-        
+
+    # my
+    def test_link_to_about_page(self):
+        response = self.client.get(reverse('about'))
+        self.assertContains(response, '<a href="%s">Index</a>' % reverse('index'), html=True)
         
         
 class ModelTests(TestCase):
@@ -129,6 +158,33 @@ class Chapter4ViewTests(TestCase):
         self.assertIn('This tutorial has been put together by', response.content)
 
 
+def create_admin(name='admin', password='admin'):
+    # return User.objects.create_superuser(name=name, email=name+'@test.com', password=password, extra_fields={})
+    u = User(username=name)
+    u.set_password(password)
+    u.is_superuser = True
+    u.is_staff = True
+    u.save()
+
+
+# my
+class PopulateScriptTests(TestCase):
+    def test_populated_categories_displayed_in_categories_page_using_admin(self):
+        try:
+            from populate_rango import populate
+            populate()
+        except ImportError:
+            print('The module populate_rango does not exist')
+        except NameError:
+            print('The function populate() does not exist or is not correct')
+        except:
+            print('Something went wrong in the populate() function :-(')
+
+        print('Creating admin')
+        create_admin()
+        print('Admin created, but I don\'t know what I\'m doing. No test here.')
+
+
 class Chapter5ViewTests(TestCase):
 
     def setUp(self):
@@ -142,9 +198,7 @@ class Chapter5ViewTests(TestCase):
         except:
             print('Something went wrong in the populate() function :-(')
 
-
     def get_category(self, name):
-
         from rango.models import Category
         try:
             cat = Category.objects.get(name=name)
@@ -249,3 +303,4 @@ class Chapter7ViewTests(TestCase):
 
 
     # test if the add_page.html template exists.
+
